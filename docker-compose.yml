@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  api:
+    build:
+      context: .
+    volumes:
+      - ./:/usr/src/app/
+    tty: true
+    container_name: fc3_api
+    depends_on:
+      - database
+    ports:
+      - 3000:3000
+    networks:
+      - node-network
+
+  database:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: fc3_database
+    restart: always
+    tty: true
+    environment:
+      MYSQL_DATABASE: nodeDatabase
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3306:3306
+    networks:
+      - node-network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: fc3_nginx
+    restart: always
+    tty: true
+    ports:
+      - 8080:80
+    depends_on:
+      - api
+      - database
+    networks:
+      - node-network
+
+networks:
+  node-network:
+    driver: bridge
